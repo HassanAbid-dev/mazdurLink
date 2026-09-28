@@ -4,10 +4,95 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider               = "prisma-client"
+  output                 = "../generated/prisma"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  CLIENT
+  WORKER
+  CONTRACTOR
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum Trade {
+  MAZDOOR
+  MASON
+  PLUMBER
+  ELECTRICIAN
+  PAINTER
+  CARPENTER
+  OTHER
+}
+enum OtpChannel {
+  EMAIL
+  SMS
+}
+model User {
+  id        String     @id @default(uuid())
+  phone     String     @unique
+  name      String
+  email     String?    @unique
+  roles     Role[]
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+
+  clientProfile     ClientProfile?
+  workerProfile     WorkerProfile?
+  contractorProfile ContractorProfile?
+}
+
+model ClientProfile {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city   String
+}
+
+model WorkerProfile {
+  id               String @id @default(uuid())
+  userId           String @unique
+  user             User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trade            Trade
+  city             String
+  experienceYears  Int
+  minRate          Int
+  maxRate          Int
+  reliabilityScore Int    @default(100)
+  avgRating        Float  @default(0)
+}
+
+model ContractorProfile {
+  id          String @id @default(uuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firmName    String
+  city        String
+  avgRating   Float  @default(0)
+  defectScore Int    @default(0)
+}
+
+model OtpToken {
+  id          String     @id @default(uuid())
+  channel     OtpChannel
+  destination String
+  codeHash    String
+  expiresAt   DateTime
+  attempts    Int        @default(0)
+  usedAt      DateTime?
+  createdAt   DateTime   @default(now())
+
+  @@index([destination])
 }
