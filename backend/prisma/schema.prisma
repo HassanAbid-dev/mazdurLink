@@ -36,7 +36,10 @@ enum Trade {
   CARPENTER
   OTHER
 }
-
+enum OtpChannel {
+  EMAIL
+  SMS
+}
 model User {
   id        String     @id @default(uuid())
   phone     String     @unique
@@ -79,4 +82,17 @@ model ContractorProfile {
   city        String
   avgRating   Float  @default(0)
   defectScore Int    @default(0)
+}
+
+model OtpToken {
+  id          String     @id @default(uuid())
+  channel     OtpChannel
+  destination String
+  codeHash    String
+  expiresAt   DateTime
+  attempts    Int        @default(0)
+  usedAt      DateTime?
+  createdAt   DateTime   @default(now())
+
+  @@index([destination])
 }
