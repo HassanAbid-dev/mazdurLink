@@ -22,9 +22,11 @@ enum Role {
 }
 
 enum UserStatus {
+  UNVERIFIED
   ACTIVE
   SUSPENDED
   BANNED
+  DISABLED
 }
 
 enum Trade {
@@ -36,18 +38,18 @@ enum Trade {
   CARPENTER
   OTHER
 }
-enum OtpChannel {
-  EMAIL
-  SMS
-}
+
 model User {
-  id        String     @id @default(uuid())
-  phone     String     @unique
-  name      String
-  email     String?    @unique
-  roles     Role[]
-  status    UserStatus @default(ACTIVE)
-  createdAt DateTime   @default(now())
+  id              String     @id @default(uuid())
+  phone           String     @unique
+  name            String
+  email           String     @unique
+  passwordHash    String
+  roles           Role[]
+  status          UserStatus @default(UNVERIFIED)
+  otpFailedRounds Int        @default(0)
+  otpBlockedUntil DateTime?
+  createdAt       DateTime   @default(now())
 
   clientProfile     ClientProfile?
   workerProfile     WorkerProfile?
@@ -74,6 +76,7 @@ model WorkerProfile {
   avgRating        Float  @default(0)
 }
 
+
 model ContractorProfile {
   id          String @id @default(uuid())
   userId      String @unique
@@ -85,14 +88,13 @@ model ContractorProfile {
 }
 
 model OtpToken {
-  id          String     @id @default(uuid())
-  channel     OtpChannel
+  id          String    @id @default(uuid())
   destination String
   codeHash    String
   expiresAt   DateTime
-  attempts    Int        @default(0)
+  attempts    Int       @default(0)
   usedAt      DateTime?
-  createdAt   DateTime   @default(now())
+  createdAt   DateTime  @default(now())
 
   @@index([destination])
 }
